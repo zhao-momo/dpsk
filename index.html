@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>硅基流动AI机器人接口</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 30px;
+        }
+
+        .input-container {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #1880b9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1976d2;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .typing-effect {
+            border-right: 2px solid #1880b9;
+            animation: typing 1s steps(40) infinite;
+        }
+
+        @keyframes typing {
+            from { border-color: transparent; }
+            to { border-color: #1880b9; }
+        }
+
+        .result-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result-content p {
+            margin: 10px 0;
+        }
+
+        .result-content code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .result-content pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .result-content blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 10px;
+            margin-left: 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>硅基流动AI机器人接口</h1>
+        <div class="input-container">
+            <textarea id="userInput" placeholder="请输入你的问题..."></textarea>
+            <select id="modelSelect">
+                <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3</option>
+                <option value="deepseek-ai/deepseek-vl2">DeepSeek-VL2</option>
+            </select>
+            <button onclick="invokeAI()">发送问题</button>
+        </div>
+        <div class="result-container" id="result">
+            <!-- 结果会显示在这里 -->
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'sk-vxlgnlyvjufjzbwrxlghsztbhkgwegbanrehvarmlqxnhrpk';
+        const API_URL = 'https://api.siliconflow.com/v1/chat/completions';
+
+        async function invokeAI() {
+            const userInput = document.getElementById('userInput').value;
+            const model = document.getElementById('modelSelect').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!userInput.trim()) {
+                alert('请先输入问题!');
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="loading typing-effect">正在处理中...</div>';
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{
+                            role: 'user',
+                            content: userInput
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultDiv.innerHTML = `<div class="loading">${data.error.message}</div>`;
+                } else {
+                    const aiResponse = data.choices[0].message.content;
+                    showTypingEffect(aiResponse, resultDiv);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="loading">${error.message}</div>`;
+            }
+        }
+
+        function showTypingEffect(text, element) {
+            element.innerHTML = '';
+            let index = 0;
+            const typingSpeed = 50; // 每个字符的间隔时间（毫秒）
+
+            function typeText() {
+                if (index < text.length) {
+                    const currentText = text.substring(0, index + 1);
+                    const markedContent = marked.parse(currentText);
+                    element.innerHTML = markedContent;
+                    index++;
+                    element.scrollTop = element.scrollHeight;
+                    setTimeout(typeText, typingSpeed);
+                }
+            }
+
+            typeText();
+        }
+
+        // 初始化marked
+        marked.setOptions({
+            breaks: true,
+            sanitize: true
+        });
+    </script>
+</body>
+</html>
