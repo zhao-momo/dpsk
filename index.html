@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>硅基流动AI机器人接口</title>
+    <title>AI机器人接口</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {
@@ -139,8 +139,9 @@
         <div class="input-container">
             <textarea id="userInput" placeholder="请输入你的问题..."></textarea>
             <select id="modelSelect">
-                <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3</option>
-                <option value="deepseek-ai/deepseek-vl2">DeepSeek-VL2</option>
+                <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3（目前有问题）</option>
+                <option value="deepseek-ai/deepseek-vl2">DeepSeek-VL2（目前有问题）</option>
+                <option value="Qwen/Qwen2-1.5B-Instruct">Qwen2-1.5（唯一可用的）</option>
             </select>
             <button onclick="invokeAI()">发送问题</button>
         </div>
